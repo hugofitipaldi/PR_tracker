@@ -31,31 +31,118 @@ exercise_options = [
 
 app = dash.Dash(__name__)
 
-app.layout = html.Div([
-    html.H1('Exercise Tracker'),
-    dcc.Tabs([
-        dcc.Tab(label='Log Exercise', children=[
-            html.Div([
-                dcc.Dropdown(id='exercise-name', options=exercise_options, placeholder='Select exercise'),
-                dcc.Input(id='weight', type='number', placeholder='Enter weight'),
-                dcc.Input(id='reps', type='number', placeholder='Enter reps'),
-                dcc.Input(id='date', type='text', placeholder='Enter date (YYYY-MM-DD)'),
-                html.Button('Submit', id='submit', n_clicks=0),
-                html.Div(id='output'),
-                dcc.Graph(id='log-graph')
-            ]),
-            html.Button('Save Data', id='save-button', n_clicks=0),  # save data button
-            html.Div(id='save-output')  # output for the save data button
-        ]),
-        dcc.Tab(label='Predicted 1RM', children=[
-            html.Div([
-                dcc.Dropdown(id='exercise-prediction', options=exercise_options, placeholder='Select exercise'),
-                html.Button('Create Plot', id='plot-button', n_clicks=0),  # create plot button
-                dcc.Graph(id='prediction-graph')
-            ])
-        ])
-    ])
-])
+# Define CSS styles
+styles = {
+    'container': {
+        'width': '80%',
+        'margin': '0 auto',
+        'padding': '20px'
+    },
+    'tab': {
+        'padding': '20px'
+    },
+    'button': {
+        'margin-top': '10px'
+    },
+    'output': {
+        'margin-top': '20px'
+    },
+    'graph': {
+        'width': '100%',
+        'height': '400px'
+    }
+}
+
+app.layout = html.Div(
+    style=styles['container'],  # Apply container style
+    children=[
+        html.H1('Exercise Tracker'),
+        dcc.Tabs(
+            style=styles['tab'],  # Apply tab style
+            children=[
+                dcc.Tab(
+                    label='Log Exercise',
+                    children=[
+                        html.Div(
+                            style=styles['tab'],  # Apply tab style
+                            children=[
+                                dcc.Dropdown(
+                                    id='exercise-name',
+                                    options=exercise_options,
+                                    placeholder='Select exercise',
+                                    style=styles['button']  # Apply button style
+                                ),
+                                dcc.Input(
+                                    id='weight',
+                                    type='number',
+                                    placeholder='Enter weight',
+                                    style=styles['button']  # Apply button style
+                                ),
+                                dcc.Input(
+                                    id='reps',
+                                    type='number',
+                                    placeholder='Enter reps',
+                                    style=styles['button']  # Apply button style
+                                ),
+                                dcc.Input(
+                                    id='date',
+                                    type='text',
+                                    placeholder='Enter date (YYYY-MM-DD)',
+                                    style=styles['button']  # Apply button style
+                                ),
+                                html.Button(
+                                    'Submit',
+                                    id='submit',
+                                    n_clicks=0,
+                                    style=styles['button']  # Apply button style
+                                ),
+                                html.Div(id='output', style=styles['output']),  # Apply output style
+                                dcc.Graph(id='log-graph', style=styles['graph'])  # Apply graph style
+                            ]
+                        ),
+                        html.Button(
+                            'Save Data',
+                            id='save-button',
+                            n_clicks=0,
+                            style=styles['button']  # Apply button style
+                        ),
+                        html.Div(
+                            id='save-output',
+                            style=styles['output']  # Apply output style
+                        )
+                    ]
+                ),
+                dcc.Tab(
+                    label='Predicted 1RM',
+                    children=[
+                        html.Div(
+                            style=styles['tab'],  # Apply tab style
+                            children=[
+                                dcc.Dropdown(
+                                    id='exercise-prediction',
+                                    options=exercise_options,
+                                    placeholder='Select exercise',
+                                    style=styles['button']  # Apply button style
+                                ),
+                                html.Button(
+                                    'Create Plot',
+                                    id='plot-button',
+                                    n_clicks=0,
+                                    style=styles['button']  # Apply button style
+                                ),
+                                dcc.Graph(
+                                    id='prediction-graph',
+                                    style=styles['graph']  # Apply graph style
+                                )
+                            ]
+                        )
+                    ]
+                )
+            ]
+        )
+    ]
+)
+
 
 # Log Exercise callback
 @app.callback(
