@@ -2,6 +2,7 @@ import webbrowser
 import dash
 from dash import dcc
 from dash import html
+import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 from ExerciseTracker import ExerciseTracker 
 import pandas as pd
@@ -29,7 +30,11 @@ exercise_options = [
 ]
 
 
-app = dash.Dash(__name__)
+#app = dash.Dash(__name__)
+# Flatly theme CDN
+JOURNAL = dbc.themes.JOURNAL
+
+app = dash.Dash(__name__, external_stylesheets=[JOURNAL])
 
 # Define CSS styles
 styles = {
@@ -192,6 +197,7 @@ def plot_prediction(n_clicks, exercise_name):
         figure = tracker.plot_1rm(exercise_name)
         return figure
     return dash.no_update
+
 
 if __name__ == '__main__':
     # Open a new browser tab automatically when the script is run
