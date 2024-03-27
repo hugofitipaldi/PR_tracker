@@ -35,6 +35,24 @@ class ExerciseTracker:
             estimated_1rm = weights * (1 + (reps / 30))
 
             fig = go.Figure()
+            
+            #Plot estimated 1RM as a dashed red line
+            fig.add_trace(go.Scatter(
+                x=dates,
+                y=estimated_1rm,
+                mode='lines+markers',
+                name='Estimated 1RM',
+                line=dict(color='red', dash='dash')
+                ))
+            
+            # Plot actual weight as a solid blue line
+            fig.add_trace(go.Scatter(
+                x=dates,
+                y=weights,
+                mode='lines+markers',
+                name='Weight',
+                line=dict(color='blue', dash='solid')
+                ))
 
             fig.add_trace(go.Scatter(
                 x=dates,
