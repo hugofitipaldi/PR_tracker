@@ -42,7 +42,14 @@ styles = {
         'padding': '20px'
     },
     'button': {
-        'margin-top': '10px'
+        'margin-top': '10px',
+    },
+    'save-button_st': {
+        'margin-top': '10px',
+        'display': 'inline-block', 
+        "marginLeft": "80%",
+        "width": "10%",
+        "height": "10%",
     },
     'output': {
         'margin-top': '20px'
@@ -104,7 +111,7 @@ app.layout = html.Div(
                             'Save Data',
                             id='save-button',
                             n_clicks=0,
-                            style=styles['button']  # Apply button style
+                            style=styles['save-button_st']  # Apply button style
                         ),
                         html.Div(
                             id='save-output',
