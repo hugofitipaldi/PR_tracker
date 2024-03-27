@@ -54,13 +54,6 @@ class ExerciseTracker:
                 line=dict(color='blue', dash='solid')
                 ))
 
-            fig.add_trace(go.Scatter(
-                x=dates,
-                y=estimated_1rm,
-                mode='lines+markers',
-                name='Estimated 1RM'
-            ))
-
             fig.update_layout(
                 title=f'Estimated 1RM for {name} Over Time',
                 xaxis_title='Date',
