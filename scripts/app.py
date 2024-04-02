@@ -5,10 +5,14 @@ from dash import html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 from ExerciseTracker import ExerciseTracker 
+from WODTracker import WODTracker
 import pandas as pd
 
 df = pd.read_csv('../data/exercise_log.csv')
 tracker = ExerciseTracker(df)
+
+wod_tracker = WODTracker()
+
 
 exercise_options = [
     {'label': 'Front Squat', 'value': 'Front Squat'},
@@ -118,10 +122,7 @@ app.layout = html.Div(
                             n_clicks=0,
                             style=styles['save-button_st']  # Apply button style
                         ),
-                        html.Div(
-                            id='save-output',
-                            style=styles['output']  # Apply output style
-                        )
+                        html.Div(id='save-output', style=styles['output'])  # Apply output style
                     ]
                 ),
                 dcc.Tab(
@@ -146,6 +147,62 @@ app.layout = html.Div(
                                     id='prediction-graph',
                                     style=styles['graph']  # Apply graph style
                                 )
+                            ]
+                        )
+                    ]
+                ),
+                dcc.Tab(
+                    label='Benchmark WODs',
+                    children=[
+                        html.Div(
+                            style=styles['tab'],
+                            children=[
+                                dcc.Input(
+                                    id='wod-name',
+                                    type='text',
+                                    placeholder='Enter WOD name',
+                                    style=styles['button']
+                                ),
+                                dcc.Textarea(
+                                    id='wod-description',
+                                    placeholder='Enter WOD description',
+                                    style={'width': '100%', 'height': 100, **styles['button']}
+                                ),
+                                dcc.Input(
+                                    id='wod-date',
+                                    type='text',
+                                    placeholder='Enter date (YYYY-MM-DD)',
+                                    style=styles['button']
+                                ),
+                                dcc.Input(
+                                    id='wod-time',
+                                    type='text',
+                                    placeholder='Enter completion time (MM:SS)',
+                                    style=styles['button']
+                                ),
+                                dcc.Dropdown(
+                                    id='wod-category',
+                                    options=[
+                                        {'label': 'Scaled', 'value': 'Scaled'},
+                                        {'label': 'Rx', 'value': 'Rx'},
+                                        {'label': 'Rx+', 'value': 'Rx+'}
+                                    ],
+                                    placeholder='Select category',
+                                    style=styles['button']
+                                ),
+                                dcc.Input(
+                                    id='wod-scale-detail',
+                                    type='text',
+                                    placeholder='Details on Scaled/Rx+ if applicable',
+                                    style=styles['button']
+                                ),
+                                html.Button(
+                                    'Log WOD',
+                                    id='log-wod-button',
+                                    n_clicks=0,
+                                    style=styles['button']
+                                ),
+                                html.Div(id='log-wod-output', style=styles['output'])
                             ]
                         )
                     ]
@@ -198,6 +255,22 @@ def plot_prediction(n_clicks, exercise_name):
         return figure
     return dash.no_update
 
+# Benchmark WODs callback
+@app.callback(
+    Output('log-wod-output', 'children'),
+    Input('log-wod-button', 'n_clicks'),
+    State('wod-name', 'value'),
+    State('wod-description', 'value'),
+    State('wod-date', 'value'),
+    State('wod-time', 'value'),
+    State('wod-category', 'value'),
+    State('wod-scale-detail', 'value'),
+)
+def log_benchmark_wod(n_clicks, wod_name, wod_description, wod_date, wod_time, wod_category, wod_scale_detail):
+    if n_clicks > 0:
+        wod_tracker.log_new_wod(wod_name, wod_description, wod_date, wod_time, wod_category, wod_scale_detail)
+        return f"WOD '{wod_name}' logged successfully."
+    return dash.no_update
 
 if __name__ == '__main__':
     # Open a new browser tab automatically when the script is run

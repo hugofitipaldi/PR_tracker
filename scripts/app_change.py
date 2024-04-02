@@ -2,13 +2,17 @@ import webbrowser
 import dash
 from dash import dcc
 from dash import html
+import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output, State
 from ExerciseTracker import ExerciseTracker 
+from WODTracker import WODTracker
 import pandas as pd
-from dash.exceptions import PreventUpdate  # Import PreventUpdate
 
 df = pd.read_csv('../data/exercise_log.csv')
 tracker = ExerciseTracker(df)
+
+wod_tracker = WODTracker()
+
 
 exercise_options = [
     {'label': 'Front Squat', 'value': 'Front Squat'},
@@ -29,7 +33,12 @@ exercise_options = [
     {'label': 'Strict Press', 'value': 'Strict Press'}
 ]
 
-app = dash.Dash(__name__)
+
+#app = dash.Dash(__name__)
+# Flatly theme CDN
+JOURNAL = dbc.themes.JOURNAL
+
+app = dash.Dash(__name__, external_stylesheets=[JOURNAL])
 
 # Define CSS styles
 styles = {
@@ -42,7 +51,14 @@ styles = {
         'padding': '20px'
     },
     'button': {
-        'margin-top': '10px'
+        'margin-top': '10px',
+    },
+    'save-button_st': {
+        'margin-top': '10px',
+        'display': 'inline-block', 
+        "marginLeft": "80%",
+        "width": "10%",
+        "height": "10%",
     },
     'output': {
         'margin-top': '20px'
@@ -66,10 +82,10 @@ app.layout = html.Div(
                         html.Div(
                             style=styles['tab'],  # Apply tab style
                             children=[
-                                dcc.Input(
-                                    id='exercise-name-input',
-                                    type='text',
-                                    placeholder='Enter exercise name',
+                                dcc.Dropdown(
+                                    id='exercise-name',
+                                    options=exercise_options,
+                                    placeholder='Select exercise',
                                     style=styles['button']  # Apply button style
                                 ),
                                 dcc.Input(
@@ -91,12 +107,6 @@ app.layout = html.Div(
                                     style=styles['button']  # Apply button style
                                 ),
                                 html.Button(
-                                    'Add Exercise',
-                                    id='add-exercise-button',
-                                    n_clicks=0,
-                                    style=styles['button']  # Apply button style
-                                ),
-                                html.Button(
                                     'Submit',
                                     id='submit',
                                     n_clicks=0,
@@ -110,12 +120,9 @@ app.layout = html.Div(
                             'Save Data',
                             id='save-button',
                             n_clicks=0,
-                            style=styles['button']  # Apply button style
+                            style=styles['save-button_st']  # Apply button style
                         ),
-                        html.Div(
-                            id='save-output',
-                            style=styles['output']  # Apply output style
-                        )
+                        html.Div(id='save-output', style=styles['output'])  # Apply output style
                     ]
                 ),
                 dcc.Tab(
@@ -143,38 +150,87 @@ app.layout = html.Div(
                             ]
                         )
                     ]
+                ),
+                dcc.Tab(
+                    label='Benchmark WODs',
+                    children=[
+                        html.Div(
+                            style=styles['tab'],
+                            children=[
+                                dcc.Input(
+                                    id='wod-name',
+                                    type='text',
+                                    placeholder='Enter WOD name',
+                                    style=styles['button']
+                                ),
+                                dcc.Textarea(
+                                    id='wod-description',
+                                    placeholder='Enter WOD description',
+                                    style={'width': '100%', 'height': 100, **styles['button']}
+                                ),
+                                dcc.Input(
+                                    id='wod-date',
+                                    type='text',
+                                    placeholder='Enter date (YYYY-MM-DD)',
+                                    style=styles['button']
+                                ),
+                                dcc.Input(
+                                    id='wod-time',
+                                    type='text',
+                                    placeholder='Enter completion time (MM:SS)',
+                                    style=styles['button']
+                                ),
+                                dcc.Dropdown(
+                                    id='wod-category',
+                                    options=[
+                                        {'label': 'Scaled', 'value': 'Scaled'},
+                                        {'label': 'Rx', 'value': 'Rx'},
+                                        {'label': 'Rx+', 'value': 'Rx+'}
+                                    ],
+                                    placeholder='Select category',
+                                    style=styles['button']
+                                ),
+                                dcc.Input(
+                                    id='wod-scale-detail',
+                                    type='text',
+                                    placeholder='Details on Scaled/Rx+ if applicable',
+                                    style=styles['button']
+                                ),
+                                html.Button(
+                                    'Log WOD',
+                                    id='log-wod-button',
+                                    n_clicks=0,
+                                    style=styles['button']
+                                ),
+                                html.Div(id='log-wod-output', style=styles['output'])
+                            ]
+                        )
+                    ]
                 )
             ]
         )
     ]
 )
 
-# Log Exercise callback (updated)
+
+# Log Exercise callback
 @app.callback(
     Output('output', 'children'),
     Output('log-graph', 'figure'),
     Input('submit', 'n_clicks'),
-    Input('add-exercise-button', 'n_clicks'),  # Add exercise button
-    State('exercise-name-input', 'value'),  # Exercise name input field
+    State('exercise-name', 'value'),
     State('weight', 'value'),
     State('reps', 'value'),
     State('date', 'value'),
 )
-def log_exercise(n_clicks, add_clicks, exercise_name, weight, reps, date):
-    ctx = dash.callback_context
-    if ctx.triggered[0]['prop_id'] == 'add-exercise-button.n_clicks':
-        # Handle adding a new exercise to the pre-existing list
-        if exercise_name:
-            exercise_options.append({'label': exercise_name, 'value': exercise_name})
-            return f"Exercise '{exercise_name}' added to the list", dash.no_update
 
+def log_exercise(n_clicks, exercise_name, weight, reps, date):
     if n_clicks > 0:
         tracker.log_exercise(exercise_name, weight, reps, date)
         estimated_1rm = tracker.calculate_1rm(exercise_name)
         figure = tracker.plot_1rm(exercise_name)
         return f"The estimated 1RM for {exercise_name} is {estimated_1rm} kg", figure
     return dash.no_update, dash.no_update
-
 
 # Save Data callback
 @app.callback(
@@ -197,6 +253,23 @@ def plot_prediction(n_clicks, exercise_name):
     if n_clicks > 0:
         figure = tracker.plot_1rm(exercise_name)
         return figure
+    return dash.no_update
+
+# Benchmark WODs callback
+@app.callback(
+    Output('log-wod-output', 'children'),
+    Input('log-wod-button', 'n_clicks'),
+    State('wod-name', 'value'),
+    State('wod-description', 'value'),
+    State('wod-date', 'value'),
+    State('wod-time', 'value'),
+    State('wod-category', 'value'),
+    State('wod-scale-detail', 'value'),
+)
+def log_benchmark_wod(n_clicks, wod_name, wod_description, wod_date, wod_time, wod_category, wod_scale_detail):
+    if n_clicks > 0:
+        wod_tracker.log_new_wod(wod_name, wod_description, wod_date, wod_time, wod_category, wod_scale_detail)
+        return f"WOD '{wod_name}' logged successfully."
     return dash.no_update
 
 if __name__ == '__main__':
