@@ -206,7 +206,21 @@ app.layout = html.Div(
                             ]
                         )
                     ]
-                )
+                ),
+                dcc.Tab(
+                    label='Explore WODs',
+                    children=[
+                        html.Div([
+                            dcc.Dropdown(
+                                id='select-wod-dropdown',
+                                options=[{'label': wod, 'value': wod} for wod in wod_tracker.df_wods['WOD Name'].unique()],
+                                placeholder='Select a WOD',
+                                style=styles['button']
+                                ),
+                                html.Div(id='wod-details-display', style={'margin-top': '20px'})
+                                ], style=styles['tab'])
+                                ]
+                                )
             ]
         )
     ]
@@ -271,6 +285,23 @@ def log_benchmark_wod(n_clicks, wod_name, wod_description, wod_date, wod_time, w
         wod_tracker.log_new_wod(wod_name, wod_description, wod_date, wod_time, wod_category, wod_scale_detail)
         return f"WOD '{wod_name}' logged successfully."
     return dash.no_update
+
+@app.callback(
+    Output('wod-details-display', 'children'),
+    [Input('select-wod-dropdown', 'value')]
+)
+def display_wod_details(selected_wod):
+    if selected_wod is not None:
+        wod_details = wod_tracker.df_wods[wod_tracker.df_wods['WOD Name'] == selected_wod].iloc[0]
+        return html.Div([
+            html.H4(f"WOD Name: {selected_wod}"),
+            html.P(f"Description: {wod_details['Description']}"),
+            html.P(f"Date: {wod_details['Date']}"),
+            html.P(f"Time: {wod_details['Time']}"),
+            html.P(f"Category: {wod_details['Category']}"),
+            html.P(f"Details: {wod_details['Details']}")
+        ])
+    return 'Select a WOD to view details.'
 
 if __name__ == '__main__':
     # Open a new browser tab automatically when the script is run
