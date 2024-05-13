@@ -152,61 +152,113 @@ app.layout = html.Div(
                     ]
                 ),
                 dcc.Tab(
-                    label='Benchmark WODs',
-                    children=[
-                        html.Div(
-                            style=styles['tab'],
-                            children=[
-                                dcc.Input(
-                                    id='wod-name',
-                                    type='text',
-                                    placeholder='Enter WOD name',
-                                    style=styles['button']
-                                ),
-                                dcc.Textarea(
-                                    id='wod-description',
-                                    placeholder='Enter WOD description',
-                                    style={'width': '100%', 'height': 100, **styles['button']}
-                                ),
-                                dcc.Input(
-                                    id='wod-date',
-                                    type='text',
-                                    placeholder='Enter date (YYYY-MM-DD)',
-                                    style=styles['button']
-                                ),
-                                dcc.Input(
-                                    id='wod-time',
-                                    type='text',
-                                    placeholder='Enter completion time (MM:SS)',
-                                    style=styles['button']
-                                ),
-                                dcc.Dropdown(
-                                    id='wod-category',
-                                    options=[
-                                        {'label': 'Scaled', 'value': 'Scaled'},
-                                        {'label': 'Rx', 'value': 'Rx'},
-                                        {'label': 'Rx+', 'value': 'Rx+'}
-                                    ],
-                                    placeholder='Select category',
-                                    style=styles['button']
-                                ),
-                                dcc.Input(
-                                    id='wod-scale-detail',
-                                    type='text',
-                                    placeholder='Details on Scaled/Rx+ if applicable',
-                                    style=styles['button']
-                                ),
-                                html.Button(
-                                    'Log WOD',
-                                    id='log-wod-button',
-                                    n_clicks=0,
-                                    style=styles['button']
-                                ),
-                                html.Div(id='log-wod-output', style=styles['output'])
-                            ]
-                        )
-                    ]
+    label='Add New Benchmark WODs',
+    children=[
+        html.Div(
+            style=styles['tab'],
+            children=[
+                dcc.Input(
+                    id='new-wod-name',
+                    type='text',
+                    placeholder='Enter new WOD name',
+                    style=styles['button']
                 ),
+                dcc.Textarea(
+                    id='new-wod-description',
+                    placeholder='Enter WOD description',
+                    style={'width': '100%', 'height': 100, **styles['button']}
+                ),
+                dcc.Input(
+                    id='new-wod-date',
+                    type='text',
+                    placeholder='Enter date (YYYY-MM-DD)',
+                    style=styles['button']
+                ),
+                dcc.Input(
+                    id='new-wod-time',
+                    type='text',
+                    placeholder='Enter completion time (MM:SS)',
+                    style=styles['button']
+                ),
+                dcc.Dropdown(
+                    id='new-wod-category',
+                    options=[
+                        {'label': 'Scaled', 'value': 'Scaled'},
+                        {'label': 'Rx', 'value': 'Rx'},
+                        {'label': 'Rx+', 'value': 'Rx+'}
+                    ],
+                    placeholder='Select category',
+                    style=styles['button']
+                ),
+                dcc.Input(
+                    id='new-wod-details',
+                    type='text',
+                    placeholder='Details on Scaled/Rx+ if applicable',
+                    style=styles['button']
+                ),
+                html.Button(
+                    'Add WOD',
+                    id='add-wod-button',
+                    n_clicks=0,
+                    style=styles['button']
+                ),
+                html.Div(id='add-wod-output', style=styles['output'])
+            ]
+        )
+    ]
+),
+
+  dcc.Tab(
+    label='Log Benchmark WOD Results',
+    children=[
+        html.Div(
+            style=styles['tab'],
+            children=[
+                dcc.Dropdown(
+                    id='log-wod-name-dropdown',
+                    options=[{'label': wod, 'value': wod} for wod in wod_tracker.df_wods['WOD Name'].unique()],
+                    placeholder='Select WOD',
+                    style=styles['button']
+                ),
+                dcc.Input(
+                    id='log-wod-date',
+                    type='text',
+                    placeholder='Enter date (YYYY-MM-DD)',
+                    style=styles['button']
+                ),
+                dcc.Input(
+                    id='log-wod-time',
+                    type='text',
+                    placeholder='Enter completion time (MM:SS)',
+                    style=styles['button']
+                ),
+                dcc.Dropdown(
+                    id='log-wod-category',
+                    options=[
+                        {'label': 'Scaled', 'value': 'Scaled'},
+                        {'label': 'Rx', 'value': 'Rx'},
+                        {'label': 'Rx+', 'value': 'Rx+'}
+                    ],
+                    placeholder='Select category',
+                    style=styles['button']
+                ),
+                dcc.Textarea(
+                    id='log-wod-details',
+                    placeholder='Enter additional details or comments',
+                    style={'width': '100%', 'height': 100, **styles['button']}
+                ),
+                html.Button(
+                    'Log WOD Results',
+                    id='log-wod-button',
+                    n_clicks=0,
+                    style=styles['button']
+                ),
+                html.Div(id='log-wod-output', style=styles['output'])
+            ]
+        )
+    ]
+),
+
                 dcc.Tab(
                     label='Explore WODs',
                     children=[
@@ -271,19 +323,40 @@ def plot_prediction(n_clicks, exercise_name):
 
 # Benchmark WODs callback
 @app.callback(
+    Output('add-wod-output', 'children'),
+    Input('add-wod-button', 'n_clicks'),
+    State('new-wod-name', 'value'),
+    State('new-wod-description', 'value'),
+    State('new-wod-date', 'value'),
+    State('new-wod-time', 'value'),
+    State('new-wod-category', 'value'),
+    State('new-wod-details', 'value'),
+)
+def add_new_wod(n_clicks, name, description, date, time, category, details):
+    if n_clicks > 0:
+        if not name or not description or not date or not time or not category:
+            return "Please fill in all required fields."
+        wod_tracker.log_new_wod(name, description, date, time, category, details)
+        return f"New WOD '{name}' added successfully."
+    return dash.no_update
+
+@app.callback(
     Output('log-wod-output', 'children'),
     Input('log-wod-button', 'n_clicks'),
-    State('wod-name', 'value'),
-    State('wod-description', 'value'),
-    State('wod-date', 'value'),
-    State('wod-time', 'value'),
-    State('wod-category', 'value'),
-    State('wod-scale-detail', 'value'),
+    State('log-wod-name-dropdown', 'value'),
+    State('log-wod-date', 'value'),
+    State('log-wod-time', 'value'),
+    State('log-wod-category', 'value'),
+    State('log-wod-details', 'value')
 )
-def log_benchmark_wod(n_clicks, wod_name, wod_description, wod_date, wod_time, wod_category, wod_scale_detail):
+def log_wod_results(n_clicks, wod_name, wod_date, wod_time, wod_category, wod_details):
     if n_clicks > 0:
-        wod_tracker.log_new_wod(wod_name, wod_description, wod_date, wod_time, wod_category, wod_scale_detail)
-        return f"WOD '{wod_name}' logged successfully."
+        if not (wod_name and wod_date and wod_time and wod_category):
+            return "Please complete all fields to log results."
+        # Retrieve existing description from the WOD tracker
+        existing_description = wod_tracker.get_wod_details(wod_name)['Description'] if wod_tracker.wod_exists(wod_name) else 'No description available'
+        result = wod_tracker.log_wod(wod_name, existing_description, wod_date, wod_time, wod_category, wod_details)
+        return result
     return dash.no_update
 
 @app.callback(

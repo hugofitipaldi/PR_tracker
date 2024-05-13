@@ -9,20 +9,13 @@ class WODTracker:
         df_wods (DataFrame): A pandas DataFrame containing the WOD records.
 
     Methods:
-        log_new_wod(wod_name, wod_description, wod_date, wod_time, wod_category, wod_details):
-            Logs a new WOD entry into the DataFrame and updates the CSV file.
+        log_new_wod: Logs a new WOD entry into the DataFrame and updates the CSV file.
+        log_wod: Adds a new session record for an existing WOD.
+        wod_exists: Checks if a WOD already exists in the DataFrame.
+        get_wod_details: Retrieves details for a specific WOD.
     """
 
     def __init__(self, csv_path='../data/benchmark_wods.csv'):
-        """
-        Initializes the WODTracker with a specified path to a CSV file.
-
-        If the CSV file exists at the given path, it loads the existing data into the DataFrame.
-        If the file does not exist, it creates a new CSV file with the required columns.
-
-        Parameters:
-            csv_path (str): The path to the CSV file where WOD records are stored. Defaults to '../data/benchmark_wods.csv'.
-        """
         self.csv_path = csv_path
         try:
             self.df_wods = pd.read_csv(csv_path)
@@ -32,20 +25,6 @@ class WODTracker:
             self.df_wods.to_csv(csv_path, index=False)
 
     def log_new_wod(self, wod_name, wod_description, wod_date, wod_time, wod_category, wod_details):
-        """
-        Logs a new WOD record in the DataFrame and updates the CSV file with the new data.
-
-        Parameters:
-            wod_name (str): The name of the WOD.
-            wod_description (str): A description of the WOD.
-            wod_date (str): The date when the WOD was performed.
-            wod_time (str): The time taken to complete the WOD.
-            wod_category (str): The category of the WOD (e.g., strength, conditioning).
-            wod_details (str): Additional details about the WOD (e.g., weights used, rounds completed).
-
-        Returns:
-            None
-        """
         new_data = {
             'WOD Name': wod_name,
             'Description': wod_description,
@@ -54,8 +33,28 @@ class WODTracker:
             'Category': wod_category,
             'Details': wod_details
         }
-        # Append the new row to the DataFrame
         self.df_wods = self.df_wods.append(new_data, ignore_index=True)
-        
-        # Save the DataFrame back to CSV
         self.df_wods.to_csv(self.csv_path, index=False)
+
+    def wod_exists(self, wod_name):
+        return wod_name in self.df_wods['WOD Name'].values
+
+    def get_wod_details(self, wod_name):
+        if self.wod_exists(wod_name):
+            return self.df_wods[self.df_wods['WOD Name'] == wod_name].iloc[0].to_dict()
+        return {}
+
+    def log_wod(self, wod_name, wod_description, wod_date, wod_time, wod_category, wod_details):
+        if not self.wod_exists(wod_name):
+            return "WOD does not exist. Please add it first."
+        new_data = {
+            'WOD Name': wod_name,
+            'Description': wod_description,
+            'Date': wod_date,
+            'Time': wod_time,
+            'Category': wod_category,
+            'Details': wod_details
+        }
+        self.df_wods = self.df_wods.append(new_data, ignore_index=True)
+        self.df_wods.to_csv(self.csv_path, index=False)
+        return "New WOD session logged successfully."
