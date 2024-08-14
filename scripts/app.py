@@ -54,12 +54,24 @@ styles = {
     'button': {
         'margin-top': '10px',
     },
-    'save-button_st': {
-        'margin-top': '10px',
-        'display': 'inline-block', 
-        "marginLeft": "80%",
-        "width": "10%",
-        "height": "10%",
+ #   'save-button_st': {
+ #       'margin-top': '10px',
+ #       'display': 'inline-block', 
+ #       "marginLeft": "80%",
+ #       "width": "10%",
+ #       "height": "10%",
+ #   },
+'save-button-container': {
+        'position': 'sticky',
+        'bottom': '20px',
+        'text-align': 'right',
+        'padding-top': '20px',
+        'background-color': 'white',
+        'z-index': 1000 
+    },
+    'save-button': {
+        'margin-left': 'auto',
+        'display': 'block',
     },
     'output': {
         'margin-top': '20px'
@@ -117,12 +129,24 @@ app.layout = html.Div(
                                 dcc.Graph(id='log-graph', style=styles['graph'])  # Apply graph style
                             ]
                         ),
-                        html.Button(
-                            'Save Data',
-                            id='save-button',
-                            n_clicks=0,
-                            style=styles['save-button_st']  # Apply button style
-                        ),
+                        html.Div(
+                                    style=styles['save-button-container'],
+                                    children=[
+                                        html.Button(
+                                            'Save Data',
+                                            id='save-button',
+                                            n_clicks=0,
+                                            style=styles['save-button']
+                                        ),
+                                    ]
+                                ),
+#                        html.Button(
+#                            'Save Data',
+#                            id='save-button',
+#                            n_clicks=0,
+#                            style=styles['save-button_st']  # Apply button style
+#                        ),
+
                         html.Div(id='save-output', style=styles['output'])  # Apply output style
                     ]
                 ),
