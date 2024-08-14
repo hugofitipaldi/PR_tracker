@@ -30,7 +30,8 @@ exercise_options = [
     {'label': 'Push Press', 'value': 'Push Press'},
     {'label': 'Hang Clean', 'value': 'Hang Clean'},
     {'label': 'Clean', 'value': 'Clean'},
-    {'label': 'Strict Press', 'value': 'Strict Press'}
+    {'label': 'Strict Press', 'value': 'Strict Press'},
+    {'label': 'Thruster', 'value': 'Thruster'}
 ]
 
 
